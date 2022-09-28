@@ -1,36 +1,59 @@
 import Card from '../UI/Card';
+import React,{useEffect,useState} from 'react';
 import MealItem from './MealItem/MealItem';
 import classes from './AvailableMeals.module.css';
 
-const DUMMY_MEALS = [
-  {
-    id: 'm1',
-    name: 'Panner Butter Masala',
-    description: 'Finest panner and veggies',
-    price: 220.00,
-  },
-  {
-    id: 'm2',
-    name: 'Daal Tadka',
-    description: 'A Indian specialty!',
-    price: 166.5,
-  },
-  {
-    id: 'm3',
-    name: 'Bhendi fry',
-    description: 'Crunchy Fingerchips dry',
-    price: 200.99,
-  },
-  {
-    id: 'm4',
-    name: 'Tandoor',
-    description: 'BUTTER ROTI...',
-    price: 18.99,
-  },
-];
 
 const AvailableMeals = () => {
-  const mealsList = DUMMY_MEALS.map((meal) => (
+  const [meals,setMeals] =useState([])
+  const [isLoading,setIsLoading] =useState(true)
+  const [error,setError] =useState();
+
+  useEffect (() => {
+
+    const fetchmeals= async()=>{
+    const responce = await fetch("https://too-hungry-29241-default-rtdb.firebaseio.com/meals.json")
+
+    if(!responce.ok){
+      throw new Error("Something got wrong") 
+    }
+
+
+     const responsedata = await responce.json ();
+
+     const loadedMeals = []
+
+      for (const key in responsedata) {
+        loadedMeals.push({
+          id:key, 
+          name:responsedata[key].name, 
+          description:responsedata[key].description, 
+          price:responsedata[key].price, 
+
+        })
+      }
+      setMeals(loadedMeals);
+      setIsLoading(false);
+  }
+  try {
+    fetchmeals()
+    
+  } catch (error) {
+    setIsLoading(false);
+    setError(error.message)
+    
+  }
+  },[])
+
+  if(isLoading) {
+    return(
+    <div className={classes.mealsloading}> 
+    <p>Loading...</p>
+    </div>)
+  }
+
+
+  const mealsList= meals.map((meal) => (
     <MealItem
       id={meal.id}
       key={meal.id}
